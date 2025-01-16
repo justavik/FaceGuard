@@ -1,5 +1,6 @@
 {
   "name": "faceguard",
+  "type": "module",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,19 +10,42 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tensorflow/tfjs": "1.7.4",
+    "@tensorflow/tfjs-node": "1.7.4",
+    "canvas": "^3.0.1",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "face-api.js": "^0.22.2",
+    "lucide-react": "^0.471.1",
+    "next": "15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.1.4"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
+    "@eslint/eslintrc": "^3",
+    "@types/body-parser": "^1.19.5",
+    "@types/connect": "^3.4.38",
+    "@types/cors": "^2.8.17",
+    "@types/estree": "^1.0.6",
+    "@types/express": "^5.0.0",
+    "@types/express-serve-static-core": "^5.0.5",
+    "@types/http-errors": "^2.0.4",
+    "@types/json-schema": "^7.0.15",
+    "@types/json5": "^0.0.30",
+    "@types/mime": "^3.0.4",
+    "@types/node": "^20.17.13",
+    "@types/qs": "^6.9.18",
+    "@types/range-parser": "^1.2.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@types/send": "^0.17.4",
+    "@types/serve-static": "^1.15.7",
+    "@types/ws": "^8.5.13",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",
-    "@eslint/eslintrc": "^3"
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
   }
 }
