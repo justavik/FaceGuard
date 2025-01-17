@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Camera as CameraIcon, Loader2 } from 'lucide-react';
+import { CameraIcon, Loader2 } from 'lucide-react';
 
 interface CameraProps {
   onCapture: (imageData: string) => void;
@@ -41,7 +41,6 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     }
   }, [isStreaming, onCapture]);
 
-  // Verification mode polling with debounce
   useEffect(() => {
     if (mode !== 'verify') return;
     
@@ -60,14 +59,13 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
           captureImage();
         }
         
-        // Only set next poll if we're still active
         if (isPolling) {
-          pollTimer = setTimeout(checkTrigger, 1000); // Reduced polling frequency
+          pollTimer = setTimeout(checkTrigger, 1000);
         }
       } catch (error) {
         console.error('Error checking trigger:', error);
         if (isPolling) {
-          pollTimer = setTimeout(checkTrigger, 2000); // Back off on error
+          pollTimer = setTimeout(checkTrigger, 2000);
         }
       }
     };
@@ -80,7 +78,6 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     };
   }, [mode, captureImage]);
 
-  // Camera selection logic
   const selectCamera = useCallback((devices: MediaDeviceInfo[]) => {
     if (mode === 'verify') {
       const externalCamera = devices.find(device => 
@@ -93,7 +90,6 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     }
   }, [mode]);
 
-  // Initial camera setup
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => navigator.mediaDevices.enumerateDevices())
@@ -107,7 +103,6 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
       });
   }, [selectCamera]);
 
-  // Stream setup
   useEffect(() => {
     if (!selectedDevice) return;
 
@@ -232,3 +227,4 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-// app/layout.tsx
+import './globals.css'
 import { Inter } from 'next/font/google'
 import { Camera } from 'lucide-react'
 
@@ -42,3 +42,4 @@ export default function RootLayout({
     </html>
   )
 }
+
