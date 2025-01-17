@@ -1,16 +1,26 @@
+/*
+ESP32 Face Recognition Trigger
+
+This code implements a WiFi-connected button trigger for the FaceGuard facial recognition system.
+When the button is pressed, it sends an HTTP POST request to trigger the face capture and
+verification process on the server. The system uses button debouncing and maintains a persistent 
+WiFi connection for reliable operation.
+*/
+
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid = "Galaxy A232A55";
-const char* password = "dwid7585";
-const char* serverUrl = "http://192.168.52.67:3000/api/trigger-capture";
+// Configuration
+const char* ssid = "<your_wifi_device_name>";
+const char* password = "<your_wifi_device_password>";
+const char* serverUrl = "http://<your_pc_or_server_ip>:3000/api/trigger-capture";
 const int buttonPin = 12;
 
 void setup() {
   Serial.begin(115200);
-  pinMode(buttonPin, INPUT);  // Regular INPUT mode, not PULLUP
-  
-  // Connect to WiFi
+  pinMode(buttonPin, INPUT);  
+
+  // Initialize WiFi connection
   Serial.println("\nConnecting to WiFi...");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -26,9 +36,9 @@ void loop() {
   static int lastButtonState = HIGH;
   int buttonState = digitalRead(buttonPin);
   
-  // Check for button press (transition from HIGH to LOW)
+  // Handle button state changes
   if (buttonState != lastButtonState) {
-    if (buttonState == LOW) {  // Button just pressed
+    if (buttonState == LOW) {
       Serial.println("\n=== BUTTON PRESSED! ===");
       
       if (WiFi.status() == WL_CONNECTED) {
@@ -38,7 +48,7 @@ void loop() {
         http.begin(serverUrl);
         http.addHeader("Content-Type", "application/json");
         
-        // Send the request
+        // Send capture trigger request
         int httpCode = http.POST("{\"trigger\":true}");
         
         if (httpCode > 0) {
@@ -55,5 +65,5 @@ void loop() {
     lastButtonState = buttonState;
   }
   
-  delay(50);  // Small delay for debouncing
+  delay(50);  // Debounce delay
 }
