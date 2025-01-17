@@ -1,4 +1,17 @@
-// src/app/api/events/route.ts
+/** The GET function in this route sets up a server-sent events (SSE) stream to communicate with clients in real-time.
+ * 
+ * The function performs the following tasks:
+ * 
+ * - Creates a ReadableStream to handle the SSE connection.
+ * - Sends an initial connection message to the client upon connection.
+ * - Listens for 'capture-requested' events from an event emitter and sends these events to the client.
+ * - Cleans up event listeners when the client disconnects.
+ * 
+ * The stream is returned as a NextResponse with appropriate headers to maintain the SSE connection.
+ * 
+ * The eventEmitter is used to handle custom events and notify the client in real-time.
+ */
+
 import { NextResponse } from 'next/server';
 import eventEmitter from '@/lib/eventEmitter';
 

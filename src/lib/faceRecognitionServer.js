@@ -1,3 +1,29 @@
+/** The faceRecognitionServer.js file sets up a face recognition server using Express, WebSocket, and face-api.js. 
+ * It initializes the server, loads face recognition models, and handles user registration and face recognition requests.
+ * 
+ * The server performs the following tasks:
+ * 
+ * - Initializes an Express app with CORS and JSON body parsing.
+ * - Sets up a storage path for face descriptors and creates the directory if it doesn't exist.
+ * - Initializes a WebSocket server to communicate with clients.
+ * - Stores registered users and their face descriptors in a Map.
+ * - Initializes face-api.js with a canvas environment.
+ * 
+ * The loadModelsSequentially function loads face-api.js models from disk sequentially.
+ * 
+ * The initializeFaceAPI function initializes TensorFlow, loads face-api.js models, and loads existing users from disk.
+ * 
+ * The reloadModelsIfNeeded function reloads face-api.js models if they are not already loaded.
+ * 
+ * The registerHandler function handles user registration by validating input, processing the image to extract face descriptors, saving user data, and notifying connected WebSocket clients.
+ * 
+ * The recognizeHandler function handles face recognition by validating input, processing the image to extract face descriptors, comparing the descriptors with registered users, and returning the recognition result. It also notifies connected WebSocket clients about the recognition attempt.
+ * 
+ * The server registers routes for user registration and face recognition, and includes a health check route to verify server and model status.
+ * 
+ * The server starts by initializing face-api.js and then listening on the specified port for incoming requests.
+ */
+
 import { WebSocketServer } from 'ws';
 import * as faceapi from 'face-api.js';
 import { Canvas, createCanvas, Image, loadImage } from 'canvas';
@@ -40,19 +66,20 @@ faceapi.env.monkeyPatch({
   ImageData: imageData.constructor
 });
 
+/**
+ * Load face-api.js models sequentially from disk.
+ */
 async function loadModelsSequentially() {
   const modelPathRoot = path.join(process.cwd(), 'models');
   console.log('Loading models from:', modelPathRoot);
 
   try {
-    // Load all models in parallel
     await Promise.all([
       faceapi.nets.ssdMobilenetv1.loadFromDisk(modelPathRoot),
       faceapi.nets.faceLandmark68TinyNet.loadFromDisk(modelPathRoot),
       faceapi.nets.faceRecognitionNet.loadFromDisk(modelPathRoot)
     ]);
 
-    // Verify all models are loaded
     const modelsLoaded = 
       faceapi.nets.ssdMobilenetv1.isLoaded &&
       faceapi.nets.faceLandmark68TinyNet.isLoaded &&
@@ -69,17 +96,17 @@ async function loadModelsSequentially() {
   }
 }
 
+/**
+ * Initialize face-api.js and load existing users.
+ */
 async function initializeFaceAPI() {
   try {
-    // Initialize TensorFlow
     console.log('Initializing TensorFlow...');
     await tf.ready();
     console.log('TensorFlow initialized successfully');
 
-    // Load models
     await loadModelsSequentially();
 
-    // Load existing users
     try {
       const usersPath = path.join(STORAGE_PATH, 'users.json');
       if (fs.existsSync(usersPath)) {
@@ -110,6 +137,9 @@ async function initializeFaceAPI() {
   }
 }
 
+/**
+ * Reload face-api.js models if they are not loaded.
+ */
 const reloadModelsIfNeeded = async () => {
   if (!faceapi.nets.ssdMobilenetv1.isLoaded || 
       !faceapi.nets.faceLandmark68TinyNet.isLoaded || 
@@ -123,6 +153,9 @@ const reloadModelsIfNeeded = async () => {
   }
 };
 
+/**
+ * Handle user registration.
+ */
 const registerHandler = async (req, res) => {
   try {
     await reloadModelsIfNeeded();
@@ -136,17 +169,14 @@ const registerHandler = async (req, res) => {
       });
     }
     
-    // Convert base64 image to buffer
     const base64Data = image.replace(/^data:image\/jpeg;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
     
-    // Load image using canvas
     const img = await loadImage(buffer);
     const canvas = createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     
-    // Detect face and compute descriptor
     const detection = await faceapi
       .detectSingleFace(canvas)
       .withFaceLandmarks(true)
@@ -161,7 +191,6 @@ const registerHandler = async (req, res) => {
     
     const userId = Math.random().toString(36).substring(2);
     
-    // Load existing users first
     let existingUsers = {};
     const usersPath = path.join(STORAGE_PATH, 'users.json');
     
@@ -175,13 +204,11 @@ const registerHandler = async (req, res) => {
       }
     }
     
-    // Add new user to existing users
     existingUsers[userId] = {
       name,
       descriptor: Array.from(detection.descriptor)
     };
     
-    // Save to disk with pretty formatting for readability
     try {
       fs.writeFileSync(
         usersPath,
@@ -192,10 +219,8 @@ const registerHandler = async (req, res) => {
       console.error('Error saving user data:', error);
     }
     
-    // Update the in-memory Map
     registeredUsers = new Map(Object.entries(existingUsers));
     
-    // Notify through WebSocket
     wss.clients.forEach(client => {
       if (client.readyState === 1) {
         client.send(JSON.stringify({
@@ -218,6 +243,9 @@ const registerHandler = async (req, res) => {
   }
 };
 
+/**
+ * Handle face recognition.
+ */
 const recognizeHandler = async (req, res) => {
   try {
     await reloadModelsIfNeeded();
@@ -231,17 +259,14 @@ const recognizeHandler = async (req, res) => {
       });
     }
     
-    // Convert base64 image to buffer
     const base64Data = image.replace(/^data:image\/jpeg;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
     
-    // Load image using canvas
     const img = await loadImage(buffer);
     const canvas = createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
     
-    // Detect face and compute descriptor
     const detection = await faceapi
       .detectSingleFace(canvas)
       .withFaceLandmarks(true)
@@ -261,7 +286,6 @@ const recognizeHandler = async (req, res) => {
       });
     }
     
-    // Compare with registered users
     let minDistance = Infinity;
     let matchedUser = null;
     
@@ -277,7 +301,7 @@ const recognizeHandler = async (req, res) => {
       }
     }
     
-    const RECOGNITION_THRESHOLD = 0.45;  // Lower threshold for stricter matching
+    const RECOGNITION_THRESHOLD = 0.45;
     
     if (minDistance <= RECOGNITION_THRESHOLD && matchedUser) {
       wss.clients.forEach(client => {

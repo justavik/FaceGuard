@@ -1,3 +1,14 @@
+ /** The  Camera  component is a functional component that captures images from the user's camera using the  getUserMedia  API. It uses a video element to display the camera feed and a canvas element to capture the image. The component also provides an option to select from multiple camera devices if available. 
+ The  Camera  component accepts two props: 
+ onCapture : A function that is called when an image is captured. The captured image data is passed as a parameter to this function. mode : A string to specify the mode of operation. The component can work in two modes:  register  and  verify . In the  register  mode, the user can manually capture images using the camera. In the  verify  mode, the component automatically captures images based on a trigger from the server. 
+ The component uses the  navigator.mediaDevices.getUserMedia()  method to access the user's camera. It also uses the  navigator.mediaDevices.enumerateDevices()  method to list available camera devices. 
+ The  selectCamera  function is used to select the camera device based on the mode of operation. In the  verify  mode, the component selects an external camera device that has "1080" in its label. In the  register  mode, the component selects the first available camera device. 
+ The  setupCamera  function is used to start the camera stream. It creates a new  MediaStream  object using the selected camera device and sets it as the source of the video element. 
+ The component renders a video element to display the camera feed and a canvas element to capture the image. It also renders a select element to choose from available camera devices (in the  register  mode). 
+ The  captureImage  function is called when the user clicks the "Capture Photo" button. It captures the current frame from the video element and converts it to a base64-encoded image data string using the  canvas.toDataURL()  method. The captured image data is then passed to the  onCapture  function. 
+ The component also includes a live recording indicator in the  verify  mode, which shows a red dot and the text "LIVE" when the camera feed is active. 
+**/
+
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { CameraIcon, Loader2 } from 'lucide-react';
 
@@ -15,6 +26,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
   const [selectedDevice, setSelectedDevice] = useState<string>('');
   const [isStreaming, setIsStreaming] = useState(false);
 
+  /**
+   * Captures an image from the video stream and calls the onCapture callback with the image data.
+   */
   const captureImage = useCallback(() => {
     if (!isStreaming) {
       setError('Please wait for camera stream to start');
@@ -41,6 +55,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     }
   }, [isStreaming, onCapture]);
 
+  /**
+   * Polls the server for a capture trigger in verify mode.
+   */
   useEffect(() => {
     if (mode !== 'verify') return;
     
@@ -78,6 +95,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     };
   }, [mode, captureImage]);
 
+  /**
+   * Selects the appropriate camera device based on the mode.
+   */
   const selectCamera = useCallback((devices: MediaDeviceInfo[]) => {
     if (mode === 'verify') {
       const externalCamera = devices.find(device => 
@@ -90,6 +110,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
     }
   }, [mode]);
 
+  /**
+   * Fetches available video devices and selects the appropriate one.
+   */
   useEffect(() => {
     navigator.mediaDevices.getUserMedia({ video: true })
       .then(() => navigator.mediaDevices.enumerateDevices())
@@ -103,6 +126,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
       });
   }, [selectCamera]);
 
+  /**
+   * Sets up the camera stream using the selected device.
+   */
   useEffect(() => {
     if (!selectedDevice) return;
 
@@ -193,7 +219,6 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
         />
         <canvas ref={canvasRef} className="hidden" />
         
-        {/* Recording indicator */}
         {isStreaming && mode === 'verify' && (
           <div className="absolute top-4 right-4 flex items-center space-x-2
             bg-black/50 backdrop-blur-sm rounded-full px-3 py-1.5">
@@ -228,3 +253,4 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
   );
 }
 
+export default Camera;

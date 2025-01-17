@@ -1,3 +1,22 @@
+/** The Home component is a functional component that provides a user interface for face recognition and user registration.
+ * 
+ * The component performs the following tasks:
+ * 
+ * - Manages state for registration mode, user name input, and the last event message.
+ * - Establishes a WebSocket connection to receive real-time updates about access attempts.
+ * - Handles user registration by capturing an image using the Camera component and sending it to the server.
+ * - Displays the result of the registration or access attempt in a notification.
+ * 
+ * The component renders:
+ * - An event log to display the latest success or error message.
+ * - A registration card that allows users to enter their name and capture an image for registration.
+ * - The FaceVerification component to handle face verification.
+ * 
+ * The handleRegister function validates the user input, sends the registration data to the server, and updates the UI based on the server response.
+ * 
+ * The useEffect hook sets up the WebSocket connection and listens for messages to update the event log.
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'

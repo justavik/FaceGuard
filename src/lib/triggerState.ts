@@ -1,4 +1,3 @@
-// src/lib/triggerState.ts
 let lastTrigger = 0;
 const DEBOUNCE_TIME = 3000; // 3 seconds minimum between triggers
 
