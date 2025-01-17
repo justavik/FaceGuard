@@ -1,36 +1,148 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FaceGuard
 
-## Getting Started
+FaceGuard is an open-source face recognition access control system that combines hardware and software components to provide secure, real-time face verification. The system uses an ESP32 microcontroller's WiFi Module with a button trigger to initiate verification requests, which are then processed by a Next.js web application using face-api.js for face recognition.
 
-First, run the development server:
+![System Status](https://img.shields.io/badge/status-active-success.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Real-time Face Recognition**: Uses face-api.js with TensorFlow.js for accurate face detection and recognition
+- **Hardware Integration**: ESP32-based trigger system for initiating verification requests
+- **User Registration**: Simple interface for registering new users with face data
+- **WebSocket Communication**: Real-time updates and notifications using WebSocket
+- **Modern UI**: Sleek, responsive interface built with React and Tailwind CSS
+- **Multi-Camera Support**: Ability to select from multiple connected cameras
+- **Live Preview**: Real-time camera feed with visual indicators
+- **Event Logging**: Comprehensive logging of access attempts and system events
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## System Architecture
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The system consists of three main components:
 
-## Learn More
+1. **Frontend Application (Next.js)**
+   - User interface for registration and verification
+   - Real-time camera feed and face capture
+   - WebSocket client for live updates
+   - Poor Code Warning: I have put a part of the name of my external webcam to select the particular device by a selectCamera function in Camera.tsx. Do Modify to your particular camera module name.
 
-To learn more about Next.js, take a look at the following resources:
+2. **Backend Server (Node.js)**
+   - Face recognition processing using face-api.js
+   - User data management and storage
+   - WebSocket server for real-time communication
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Hardware Trigger (ESP32)**
+   - Physical button interface
+   - WiFi connectivity
+   - HTTP client for triggering verification requests
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Prerequisites
 
-## Deploy on Vercel
+### Hardware Requirements
+- ESP32 development board (I used an EspressIf ESP32-WROOM-32E DevKitC)
+- Push button
+- Breadboard and jumper wires
+- USB camera (1080p recommended for better accuracy)
+- Computer/server to host the application
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Software Requirements
+- Node.js 18.0 or higher
+- npm or yarn package manager
+- Git
+- Arduino IDE (for ESP32 programming)
+- Modern web browser
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/faceguard.git
+   cd faceguard
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Download face-api.js models**
+   ```bash
+   # Create models directory
+   mkdir -p models
+   
+   # Download models (you'll need to source these from face-api.js)
+   # Place in the models directory:
+   # - ssd_mobilenetv1_model
+   # - face_landmark_68_tiny_model
+   # - face_recognition_model
+   ```
+
+4. **Configure ESP32**
+   - Open `esp32/wifiConnectedCameraCapture.ino` in Arduino IDE
+   - Update WiFi credentials and server URL
+   - Upload to ESP32
+   - Connect button to GPIO pin 12 and ground
+
+5. **Environment Setup**
+   - Copy `.env.example` to `.env.local`
+   - Update configuration values as needed
+
+## Running the Application
+
+1. **Start the face recognition server**
+   ```bash
+   node src/lib/faceRecognitionServer.js
+   ```
+
+2. **Start the Next.js application**
+   ```bash
+   npm run dev
+   ```
+
+3. **Access the application**
+   - Open `http://localhost:3000` in your browser
+   - The system status indicator should show "System Active"
+
+## Usage
+
+### User Registration
+1. Click "Register New User"
+2. Enter the user's name
+3. Ensure good lighting and face positioning
+4. Click "Capture Photo"
+5. Wait for confirmation of successful registration
+
+### Face Verification
+1. Press the button on the ESP32 device
+2. Look at the camera when the "LIVE" indicator appears
+3. Wait for verification result
+4. System will display access granted/denied message
+
+## Hardware Setup
+
+### ESP32 Wiring
+- 3V3 to 5V end of ESP32 placed on breadboard (j row)
+- Tactile 4-pin push button positioned spanning across midline.
+- GPIO 12 connected to bottom right pin of button.
+- 3V3 connected to both upper right pin of button.
+
+### Camera Placement
+- Mount camera at face level
+- Ensure good lighting conditions
+- Avoid backlighting
+- Recommended distance: 0.5 meter
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- face-api.js for the face recognition models (Sourced from https://github.com/justadudewhohacks/face-api.js/ under MIT License - Copyright (c) 2018 Vincent Mühler
+- Next.js team for the amazing framework
+- ESP32 community for hardware support
+- All contributors and testers
