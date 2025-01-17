@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 /face-data
+/face-data/users.json
 
 # dependencies
 /node_modules
