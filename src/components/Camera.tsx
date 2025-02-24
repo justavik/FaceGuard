@@ -97,15 +97,29 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
 
   /**
    * Selects the appropriate camera device based on the mode.
+   * In verify mode, tries to use the first external camera if available,
+   * otherwise falls back to the default camera.
    */
   const selectCamera = useCallback((devices: MediaDeviceInfo[]) => {
+    if (devices.length === 0) {
+      setError('No camera devices found');
+      return;
+    }
+
     if (mode === 'verify') {
-      const externalCamera = devices.find(device => 
-        device.label.toLowerCase().includes('1080')
-      );
+      // Try to find an external camera (usually not the first device)
+      const defaultCamera = devices[0];
+      const externalCameras = devices.slice(1);
       
-      setSelectedDevice(externalCamera?.deviceId || devices[0]?.deviceId);
-    } else if (devices.length > 0) {
+      // If there are external cameras, use the first one
+      if (externalCameras.length > 0) {
+        setSelectedDevice(externalCameras[0].deviceId);
+      } else {
+        // Fall back to the default camera
+        setSelectedDevice(defaultCamera.deviceId);
+      }
+    } else {
+      // For register mode, use the default (usually front-facing) camera
       setSelectedDevice(devices[0].deviceId);
     }
   }, [mode]);

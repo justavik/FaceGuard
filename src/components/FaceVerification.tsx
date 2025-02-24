@@ -15,8 +15,9 @@
  */
 
 import React, { useState } from 'react';
-import { Camera } from './Camera';
+import { Camera as CameraIcon } from 'lucide-react';
 import { Shield, AlertCircle, Fingerprint } from 'lucide-react';
+import { Camera } from './Camera';  // Import our custom Camera component
 
 interface VerificationResult {
   success: boolean;
@@ -65,6 +66,39 @@ export function FaceVerification() {
     }
   };
 
+  /**
+   * Simulates the ESP32 hardware trigger by calling the trigger-capture endpoint
+   */
+  const handleTrigger = async () => {
+    try {
+      const response = await fetch('/api/trigger-capture', {
+        method: 'POST',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to trigger capture');
+      }
+      
+      // Optional: Add visual feedback
+      setVerificationResult({
+        success: true,
+        message: 'Capture triggered...'
+      });
+      
+      // Clear the message after 2 seconds
+      setTimeout(() => {
+        setVerificationResult(null);
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Error triggering capture:', error);
+      setVerificationResult({
+        success: false,
+        message: 'Failed to trigger capture'
+      });
+    }
+  };
+
   return (
     <div className="bg-white/10 backdrop-blur-lg rounded-xl border border-white/20 overflow-hidden">
       <div className="p-6">
@@ -73,6 +107,19 @@ export function FaceVerification() {
           <h2 className="ml-2 text-xl font-medium text-white">
             Face Verification
           </h2>
+        </div>
+
+        {/* Update icon name in button */}
+        <div className="mt-4">
+          <button
+            onClick={handleTrigger}
+            className="w-full px-4 py-2 bg-indigo-500 hover:bg-indigo-600 
+              text-white rounded-lg transition-colors duration-200
+              flex items-center justify-center space-x-2"
+          >
+            <CameraIcon className="w-4 h-4" />
+            <span>Trigger Verification</span>
+          </button>
         </div>
 
         {verificationResult && (

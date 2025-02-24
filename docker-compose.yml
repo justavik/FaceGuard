@@ -12,8 +12,14 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://0.0.0.0:3001
+      - NEXT_PUBLIC_WEBSOCKET_URL=ws://0.0.0.0:3002
     networks:
       - faceguard-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   face-data:

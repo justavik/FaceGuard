@@ -24,7 +24,7 @@ The system consists of three main components:
    - User interface for registration and verification
    - Real-time camera feed and face capture
    - WebSocket client for live updates
-   - Poor Code Warning: I have put a part of the name of my external webcam to select the particular device by a selectCamera function in Camera.tsx. Do Modify to your particular camera module name.
+   - Camera Selection: Uses default system camera for registration and first available external camera (if present) for verification
 
 2. **Backend Server (Node.js)**
    - Face recognition processing using face-api.js
@@ -97,7 +97,7 @@ The system consists of three main components:
 5. Wait for confirmation of successful registration
 
 ### Face Verification
-1. Press the button on the ESP32 device
+1. Click "Trigger Verification" button (or press the button on the ESP32 device if available)
 2. Look at the camera when the "LIVE" indicator appears
 3. Wait for verification result
 4. System will display access granted/denied message
