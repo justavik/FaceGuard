@@ -65,27 +65,11 @@ The system consists of three main components:
    npm install
    ```
 
-3. **Download face-api.js models**
-   ```bash
-   # Create models directory
-   mkdir -p models
-   
-   # Download models (you'll need to source these from face-api.js)
-   # Place in the models directory:
-   # - ssd_mobilenetv1_model
-   # - face_landmark_68_tiny_model
-   # - face_recognition_model
-   ```
-
-4. **Configure ESP32**
+3. **Configure ESP32**
    - Open `esp32/wifiConnectedCameraCapture.ino` in Arduino IDE
    - Update WiFi credentials and server URL
    - Upload to ESP32
    - Connect button to GPIO pin 12 and ground
-
-5. **Environment Setup**
-   - Copy `.env.example` to `.env.local`
-   - Update configuration values as needed
 
 ## Running the Application
 
