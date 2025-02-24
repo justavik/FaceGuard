@@ -36,7 +36,7 @@ import * as tf from '@tensorflow/tfjs-node';
 // Initialize express app
 const app = express();
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://host.docker.internal:3000', '*'],
   credentials: true,
   methods: ['GET', 'POST']
 }));

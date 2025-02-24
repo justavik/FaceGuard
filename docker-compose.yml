@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  faceguard:
+    build: .
+    ports:
+      - "3000:3000"  # Next.js frontend
+      - "3001:3001"  # Face recognition server
+      - "3002:3002"  # WebSocket server
+    volumes:
+      - face-data:/app/face-data
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://0.0.0.0:3001
+    networks:
+      - faceguard-net
+
+volumes:
+  face-data:
+
+networks:
+  faceguard-net:
+    driver: bridge 
