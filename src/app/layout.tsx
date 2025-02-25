@@ -24,7 +24,7 @@ export default function RootLayout({
                 <div className="flex items-center">
                   <Camera className="w-8 h-8 text-purple-400" />
                   <h1 className="ml-2 text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">
-                    FaceGuard by Avik
+                    FaceGuard
                   </h1>
                 </div>
                 <div className="flex items-center">
