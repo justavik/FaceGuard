@@ -49,6 +49,7 @@ The system consists of three main components:
 - Node.js 18.0 or higher
 - npm or yarn package manager
 - Git
+- Docker
 - Arduino IDE (for ESP32 programming)
 - Modern web browser
 
@@ -60,12 +61,7 @@ The system consists of three main components:
    cd faceguard
    ```
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure ESP32**
+2. **Configure ESP32**
    - Open `esp32/wifiConnectedCameraCapture.ino` in Arduino IDE
    - Update WiFi credentials and server URL
    - Upload to ESP32
@@ -73,17 +69,12 @@ The system consists of three main components:
 
 ## Running the Application
 
-1. **Start the face recognition server**
+1. **Run Docker Container**
    ```bash
-   node src/lib/faceRecognitionServer.js
+   docker-compose up --build
    ```
 
-2. **Start the Next.js application**
-   ```bash
-   npm run dev
-   ```
-
-3. **Access the application**
+2. **Access the application**
    - Open `http://localhost:3000` in your browser
    - The system status indicator should show "System Active"
 
