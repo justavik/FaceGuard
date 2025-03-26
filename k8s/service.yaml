@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: faceguard
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: nextjs
+  - port: 3001
+    targetPort: 3001
+    name: faceapi
+  - port: 3002
+    targetPort: 3002
+    name: websocket
+  selector:
+    app: faceguard 

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: faceguard-config
+data:
+  NODE_ENV: "development"
+  # These will be updated by the service's ClusterIP
+  NEXT_PUBLIC_API_URL: "http://localhost:3001"
+  NEXT_PUBLIC_WEBSOCKET_URL: "ws://localhost:3002" 

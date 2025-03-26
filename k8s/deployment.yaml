@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faceguard
+  labels:
+    app: faceguard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: faceguard
+  template:
+    metadata:
+      labels:
+        app: faceguard
+    spec:
+      containers:
+      - name: faceguard
+        image: faceguard:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 3000
+          name: nextjs
+        - containerPort: 3001
+          name: faceapi
+        - containerPort: 3002
+          name: websocket
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        volumeMounts:
+        - name: face-data
+          mountPath: /app/face-data
+        envFrom:
+        - configMapRef:
+            name: faceguard-config
+        - secretRef:
+            name: faceguard-secret
+      volumes:
+      - name: face-data
+        persistentVolumeClaim:
+          claimName: faceguard-pvc 
