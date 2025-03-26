@@ -55,14 +55,39 @@ export function FaceVerification() {
       const result = await response.json();
       setVerificationResult(result);
 
-      // Clear the verification result after 5 seconds
-      setTimeout(() => setVerificationResult(null), 5000);
+      // Store the successful result separately to prevent it from being cleared
+      if (result.success && result.user) {
+        // Don't clear a successful verification result
+        return;
+      }
+
+      // Only clear error messages after 5 seconds
+      setTimeout(() => {
+        setVerificationResult((prev) => {
+          // Only clear if it's still the same error message
+          if (prev && !prev.success) {
+            return null;
+          }
+          return prev;
+        });
+      }, 5000);
     } catch (error) {
       console.error('Verification error:', error);
       setVerificationResult({
         success: false,
         message: 'Verification failed. Please try again.'
       });
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setVerificationResult((prev) => {
+          // Only clear if it's still the error message
+          if (prev && !prev.success) {
+            return null;
+          }
+          return prev;
+        });
+      }, 5000);
     }
   };
 
@@ -71,6 +96,12 @@ export function FaceVerification() {
    */
   const handleTrigger = async () => {
     try {
+      // Show feedback immediately
+      setVerificationResult({
+        success: true,
+        message: 'Initiating camera...'
+      });
+      
       const response = await fetch('/api/trigger-capture', {
         method: 'POST',
       });
@@ -79,23 +110,48 @@ export function FaceVerification() {
         throw new Error('Failed to trigger capture');
       }
       
-      // Optional: Add visual feedback
-      setVerificationResult({
-        success: true,
-        message: 'Capture triggered...'
-      });
-      
-      // Clear the message after 2 seconds
+      // Don't clear the message immediately to give camera time to initialize
       setTimeout(() => {
-        setVerificationResult(null);
-      }, 2000);
+        // Only update if we're still showing the "Initiating camera..." message
+        setVerificationResult((prev) => {
+          if (prev && prev.message === 'Initiating camera...') {
+            return {
+              success: true,
+              message: 'Please look at the camera'
+            };
+          }
+          return prev;
+        });
+      }, 1000);
+      
+      // Clear the initialization message after 5 seconds if no verification happened
+      setTimeout(() => {
+        setVerificationResult((prev) => {
+          // Only clear if it's still the initialization message
+          if (prev && prev.message === 'Please look at the camera') {
+            return null;
+          }
+          return prev;
+        });
+      }, 5000);
       
     } catch (error) {
       console.error('Error triggering capture:', error);
       setVerificationResult({
         success: false,
-        message: 'Failed to trigger capture'
+        message: 'Failed to trigger camera. Please try again.'
       });
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setVerificationResult((prev) => {
+          // Only clear if it's still the error message
+          if (prev && !prev.success) {
+            return null;
+          }
+          return prev;
+        });
+      }, 5000);
     }
   };
 

@@ -106,22 +106,9 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
       return;
     }
 
-    if (mode === 'verify') {
-      // Try to find an external camera (usually not the first device)
-      const defaultCamera = devices[0];
-      const externalCameras = devices.slice(1);
-      
-      // If there are external cameras, use the first one
-      if (externalCameras.length > 0) {
-        setSelectedDevice(externalCameras[0].deviceId);
-      } else {
-        // Fall back to the default camera
-        setSelectedDevice(defaultCamera.deviceId);
-      }
-    } else {
-      // For register mode, use the default (usually front-facing) camera
-      setSelectedDevice(devices[0].deviceId);
-    }
+    // Use the same camera selection logic for both modes
+    // Just pick the first available camera to ensure consistency
+    setSelectedDevice(devices[0].deviceId);
   }, [mode]);
 
   /**
