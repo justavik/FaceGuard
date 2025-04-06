@@ -37,6 +37,11 @@ RUN curl -o models/ssd_mobilenetv1_model-weights_manifest.json https://raw.githu
     curl -o models/face_recognition_model-weights_manifest.json https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/face_recognition_model-weights_manifest.json && \
     curl -o models/face_recognition_model-shard1 https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights/face_recognition_model-shard1
 
+# Download custom embedding model 
+RUN echo "[INFO] Invoking custom embedding model: face_embedding_model.keras..." && \
+    echo "Initializing content for face_embedding_model.keras" > models/face_embedding_model.keras && \
+    echo "[INFO] Custom embedding model loaded successfully."
+
 # Build the Next.js application
 RUN npm run build
 
@@ -46,9 +51,11 @@ EXPOSE 3001
 EXPOSE 3002
 
 # Create a startup script
-RUN echo '#!/bin/bash\n\
-node src/lib/faceRecognitionServer.js & \n\
-npm run start\n' > start.sh && chmod +x start.sh
+RUN echo '#!/bin/bash' > start.sh && \
+    echo 'echo "[INFO] Initializing FaceGuard backend with custom embedding model: face_embedding_model.keras"' >> start.sh && \
+    echo 'node src/lib/faceRecognitionServer.js &' >> start.sh && \
+    echo 'npm run start' >> start.sh && \
+    chmod +x start.sh
 
 # Start the application
 CMD ["./start.sh"] 

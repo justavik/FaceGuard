@@ -100,13 +100,15 @@ export function Camera({ onCapture, mode = 'register' }: CameraProps) {
    */
   const selectCamera = useCallback((devices: MediaDeviceInfo[]) => {
     if (mode === 'verify') {
-      const externalCamera = devices.find(device => 
-        device.label.toLowerCase().includes('1080')
+      const integratedCamera = devices.find(device => 
+        device.label.toLowerCase().includes('integrated')
       );
-      
-      setSelectedDevice(externalCamera?.deviceId || devices[0]?.deviceId);
-    } else if (devices.length > 0) {
+      // Prioritize integrated camera, fall back to the first available device if not found or if no devices exist
+      setSelectedDevice(integratedCamera?.deviceId || devices[0]?.deviceId || '');
+    } else if (devices.length > 0) { // register mode
       setSelectedDevice(devices[0].deviceId);
+    } else {
+        setSelectedDevice(''); // No devices found
     }
   }, [mode]);
 

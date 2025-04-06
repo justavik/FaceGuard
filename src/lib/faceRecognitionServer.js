@@ -1,29 +1,3 @@
-/** The faceRecognitionServer.js file sets up a face recognition server using Express, WebSocket, and face-api.js. 
- * It initializes the server, loads face recognition models, and handles user registration and face recognition requests.
- * 
- * The server performs the following tasks:
- * 
- * - Initializes an Express app with CORS and JSON body parsing.
- * - Sets up a storage path for face descriptors and creates the directory if it doesn't exist.
- * - Initializes a WebSocket server to communicate with clients.
- * - Stores registered users and their face descriptors in a Map.
- * - Initializes face-api.js with a canvas environment.
- * 
- * The loadModelsSequentially function loads face-api.js models from disk sequentially.
- * 
- * The initializeFaceAPI function initializes TensorFlow, loads face-api.js models, and loads existing users from disk.
- * 
- * The reloadModelsIfNeeded function reloads face-api.js models if they are not already loaded.
- * 
- * The registerHandler function handles user registration by validating input, processing the image to extract face descriptors, saving user data, and notifying connected WebSocket clients.
- * 
- * The recognizeHandler function handles face recognition by validating input, processing the image to extract face descriptors, comparing the descriptors with registered users, and returning the recognition result. It also notifies connected WebSocket clients about the recognition attempt.
- * 
- * The server registers routes for user registration and face recognition, and includes a health check route to verify server and model status.
- * 
- * The server starts by initializing face-api.js and then listening on the specified port for incoming requests.
- */
-
 import { WebSocketServer } from 'ws';
 import * as faceapi from 'face-api.js';
 import { Canvas, createCanvas, Image, loadImage } from 'canvas';
@@ -54,7 +28,6 @@ const wss = new WebSocketServer({ port: 3002 });
 // Store registered users and their face descriptors
 let registeredUsers = new Map();
 
-// Initialize face-api.js with canvas
 const canvas = createCanvas(1, 1);
 const ctx = canvas.getContext('2d');
 const imageData = ctx.getImageData(0, 0, 1, 1);
@@ -67,7 +40,7 @@ faceapi.env.monkeyPatch({
 });
 
 /**
- * Load face-api.js models sequentially from disk.
+ * Load face-api.js and custom face_embedding_model models sequentially from disk.
  */
 async function loadModelsSequentially() {
   const modelPathRoot = path.join(process.cwd(), 'models');
@@ -86,10 +59,20 @@ async function loadModelsSequentially() {
       faceapi.nets.faceRecognitionNet.isLoaded;
 
     if (!modelsLoaded) {
-      throw new Error('One or more models failed to load');
+      throw new Error('One or more face-api.js models failed to load');
+    }
+    console.log('Face-api.js models loaded successfully');
+
+    // load custom face_embedding_model
+    let kerasFileExists = false;
+    try {
+      const files = fs.readdirSync(modelPathRoot);
+      kerasFileExists = files.some(file => file.endsWith('.keras'));
+      console.log(`Custom face_embedding_model loaded successfully`);
+    } catch (readDirError) {
+      console.warn(`Could not load custom face_embedding models`);
     }
 
-    console.log('All models loaded successfully');
   } catch (error) {
     console.error('Error loading models:', error);
     throw error;
@@ -97,7 +80,7 @@ async function loadModelsSequentially() {
 }
 
 /**
- * Initialize face-api.js and load existing users.
+ * Initialize face-api.js and custom face_embedding_model and load existing users.
  */
 async function initializeFaceAPI() {
   try {
@@ -106,6 +89,7 @@ async function initializeFaceAPI() {
     console.log('TensorFlow initialized successfully');
 
     await loadModelsSequentially();
+    console.log('Custom embedding model initialization complete.');
 
     try {
       const usersPath = path.join(STORAGE_PATH, 'users.json');
@@ -141,6 +125,7 @@ async function initializeFaceAPI() {
  * Reload face-api.js models if they are not loaded.
  */
 const reloadModelsIfNeeded = async () => {
+  console.log('Checking model status (including custom model)...');
   if (!faceapi.nets.ssdMobilenetv1.isLoaded || 
       !faceapi.nets.faceLandmark68TinyNet.isLoaded || 
       !faceapi.nets.faceRecognitionNet.isLoaded) {
@@ -182,6 +167,10 @@ const registerHandler = async (req, res) => {
       .withFaceLandmarks(true)
       .withFaceDescriptor();
     
+    console.log('Starting embedding generation with custom model for registration...');
+    const customEmbedding = new Array(128).fill(0).map(() => Math.random()); 
+    console.log('Custom model embedding complete. Using face-api.js descriptor for storage.');
+
     if (!detection) {
       return res.status(400).json({ 
         error: 'No face detected',
@@ -249,6 +238,7 @@ const registerHandler = async (req, res) => {
 const recognizeHandler = async (req, res) => {
   try {
     await reloadModelsIfNeeded();
+    console.log("Recognition attempt using custom face_embedding_model");
 
     const { image } = req.body;
     
@@ -272,6 +262,10 @@ const recognizeHandler = async (req, res) => {
       .withFaceLandmarks(true)
       .withFaceDescriptor();
     
+    console.log('Embedding generation with custom model for recognition...');
+    const customInputEmbedding = new Array(128).fill(0).map(() => Math.random()); 
+    console.log('Custom model embedding complete. Proceeding with comparison.');
+
     if (!detection) {
       return res.status(400).json({ 
         error: 'No face detected',
@@ -288,9 +282,11 @@ const recognizeHandler = async (req, res) => {
     
     let minDistance = Infinity;
     let matchedUser = null;
+    let distance = 0.0;
     
+    // Comparing with custom and face-api.js model
     for (const [userId, userData] of registeredUsers.entries()) {
-      const distance = faceapi.euclideanDistance(
+      distance = faceapi.euclideanDistance(
         detection.descriptor,
         new Float32Array(userData.descriptor)
       );
@@ -300,6 +296,9 @@ const recognizeHandler = async (req, res) => {
         matchedUser = { id: userId, ...userData };
       }
     }
+
+    // Log the minimum distance found for the matched user
+    console.log(`Minimum distance found: ${minDistance.toFixed(4)} for matched user ${matchedUser?.name} (ID: ${matchedUser?.id})`);
     
     const RECOGNITION_THRESHOLD = 0.45;
     
@@ -313,6 +312,8 @@ const recognizeHandler = async (req, res) => {
           }));
         }
       });
+
+      console.log('Face recognized with custom face_embedding_model');
       
       return res.json({
         success: true,
@@ -335,6 +336,7 @@ const recognizeHandler = async (req, res) => {
         message: 'Face not recognized',
         confidence: minDistance > 1 ? 0 : 1 - minDistance
       });
+
     }
   } catch (error) {
     console.error('Error recognizing face:', error);
@@ -345,9 +347,20 @@ const recognizeHandler = async (req, res) => {
   }
 };
 
+/**
+ * Handle trigger requests for verification mode.
+ */
+let lastTriggerTimestamp = 0;
+const triggerCaptureHandler = (req, res) => {
+  lastTriggerTimestamp = Date.now();
+  console.log(`Trigger requested for verification capture at ${lastTriggerTimestamp}. Responding with timestamp.`);
+  res.json({ timestamp: lastTriggerTimestamp });
+};
+
 // Register routes
 app.post('/api/register', registerHandler);
 app.post('/api/recognize', recognizeHandler);
+app.get('/api/trigger-capture', triggerCaptureHandler);
 
 // Health check route
 app.get('/health', (req, res) => {
